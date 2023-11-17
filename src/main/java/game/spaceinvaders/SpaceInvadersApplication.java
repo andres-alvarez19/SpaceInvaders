@@ -2,20 +2,16 @@ package game.spaceinvaders;
 
 import com.almasb.fxgl.app.GameApplication;
 import com.almasb.fxgl.app.GameSettings;
-import com.almasb.fxgl.app.scene.SceneFactory;
 import com.almasb.fxgl.core.math.FXGLMath;
 import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
-import com.almasb.fxgl.physics.CollisionHandler;
-import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.util.Duration;
-import org.jetbrains.annotations.NotNull;
 
 import static com.almasb.fxgl.dsl.FXGL.getGameWorld;
 import static com.almasb.fxgl.dsl.FXGL.onCollisionBegin;
@@ -23,6 +19,8 @@ import static com.almasb.fxgl.dsl.FXGL.showMessage;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
 public class SpaceInvadersApplication extends GameApplication {
+    private int timelapse;
+    private Text timeText;
     @Override
     protected void initSettings(GameSettings settings) {
         settings.setWidth(800);
@@ -32,8 +30,6 @@ public class SpaceInvadersApplication extends GameApplication {
         settings.setFullScreenAllowed(false);
         settings.setMainMenuEnabled(true);
         settings.setAppIcon( "logo.png");
-
-
     }
     @Override
     protected void initGame() {
@@ -43,7 +39,7 @@ public class SpaceInvadersApplication extends GameApplication {
                 BackgroundPosition.CENTER,
                 new BackgroundSize(800,600,true,true, FXGL.getInput().getRegisterInput(), FXGL.getInput().getRegisterInput())));
         getGameScene().getRoot().setBackground(background);
-
+        getGameScene().setCursorInvisible();
         getGameWorld().addEntityFactory(new MapObjects());
         spawn("player",0, (double) getAppHeight() /2);
         spawnEnemies();
@@ -81,6 +77,17 @@ public class SpaceInvadersApplication extends GameApplication {
             return null;
         });
     }
+    @Override
+    protected void initUI() {
+        timeText = new Text();
+        timeText.setFont(Font.font(24));
+        timeText.setTranslateX(20);
+        timeText.setTranslateY(40);
+        getGameTimer().runAtInterval(()->{
+            timelapse++;
+        },new Duration(1000));
+        getGameScene().addUINode(timeText);
+    }
     protected void spawnEnemies(){
         FXGL.run(()->{
             double x = getAppWidth();
@@ -97,17 +104,26 @@ public class SpaceInvadersApplication extends GameApplication {
     }
     @Override
     protected void onUpdate(double tpf) {
+        timeText.setText("Timer: " + Time.formatToTime(timelapse));
         var enemiesReachBase = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY)&& e.getX() < 0);
         if(!enemiesReachBase.isEmpty()){
             showMessage("Game Over",() -> getGameController().gotoMainMenu());
         }
         Entity player = getGameWorld().getSingleton(EntityType.PLAYER);
-        double x = player.getX();
-        double y = player.getY();
+        double x ;
+        double y ;
         x = FXGLMath.clamp((float) player.getX(), (float) 0, (float) (getAppWidth() - player.getWidth()));
         y = FXGLMath.clamp((float) player.getY(), (float) 0, (float) (getAppHeight() - player.getHeight()));
         player.setPosition(x, y);
 
+        var enemies = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY));
+        for (Entity enemy : enemies) {
+            if (player.isColliding(enemy)){
+                player.removeFromWorld();
+                enemy.removeFromWorld();
+                showMessage("Game Over",() -> getGameController().gotoMainMenu());
+            }
+        }
     }
     public static void main(String[] args) {
         launch(args);
