@@ -7,18 +7,11 @@ import com.almasb.fxgl.entity.Entity;
 import com.almasb.fxgl.entity.EntityFactory;
 import com.almasb.fxgl.entity.SpawnData;
 import com.almasb.fxgl.entity.Spawns;
-import javafx.application.Platform;
 import javafx.geometry.Point2D;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
-import java.util.Objects;
-
-import static com.almasb.fxgl.dsl.FXGLForKtKt.entityBuilder;
-
-public class MapObjects implements EntityFactory {
+public class SpaceInvadersFactory implements EntityFactory {
 
     @Spawns("enemy")
     public Entity newEnemy(SpawnData data ){

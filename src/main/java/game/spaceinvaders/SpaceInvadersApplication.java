@@ -21,6 +21,7 @@ import static com.almasb.fxgl.dsl.FXGL.showMessage;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
 public class SpaceInvadersApplication extends GameApplication {
+
     private int puntos = 0;
     private int timelapse;
     private Text puntosText ;
@@ -44,18 +45,17 @@ public class SpaceInvadersApplication extends GameApplication {
                 new BackgroundSize(800,600,true,true, FXGL.getInput().getRegisterInput(), FXGL.getInput().getRegisterInput())));
         getGameScene().getRoot().setBackground(background);
         getGameScene().setCursorInvisible();
-        getGameWorld().addEntityFactory(new MapObjects());
+        getGameWorld().addEntityFactory(new SpaceInvadersFactory());
         spawn("player",0, (double) getAppHeight() /2);
         spawnEnemies();
     }
     @Override
     protected void initInput(){
         double speed = 4;
-        onBtnDown(MouseButton.PRIMARY, ()-> {
+        FXGL.onBtnDown(MouseButton.PRIMARY, ()-> {
             double x = getGameWorld().getSingleton(EntityType.PLAYER).getX();
             double y = getGameWorld().getSingleton(EntityType.PLAYER).getY();
             spawn("projectile",x,y+12);
-            return null;
         });
         onKey(KeyCode.D, () -> {
             getGameWorld().getSingleton(EntityType.PLAYER).translateX(speed);
@@ -113,12 +113,6 @@ public class SpaceInvadersApplication extends GameApplication {
             showMessage("Game Over",() -> getGameController().gotoMainMenu());
         }
         Entity player = getGameWorld().getSingleton(EntityType.PLAYER);
-        double x ;
-        double y ;
-        x = FXGLMath.clamp((float) player.getX(), (float) 0, (float) (getAppWidth() - player.getWidth()));
-        y = FXGLMath.clamp((float) player.getY(), (float) 0, (float) (getAppHeight() - player.getHeight()));
-        player.setPosition(x, y);
-
         var enemies = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY));
         for (Entity enemy : enemies) {
             if (player.isColliding(enemy)){
@@ -127,6 +121,9 @@ public class SpaceInvadersApplication extends GameApplication {
                 showMessage("Game Over",() -> getGameController().gotoMainMenu());
             }
         }
+        double x = FXGLMath.clamp((float) player.getX(), (float) 0, (float) (getAppWidth() - player.getWidth()));
+        double y = FXGLMath.clamp((float) player.getY(), (float) 0, (float) (getAppHeight() - player.getHeight()));
+        player.setPosition(x, y);
     }
     public static void main(String[] args) {
         launch(args);
