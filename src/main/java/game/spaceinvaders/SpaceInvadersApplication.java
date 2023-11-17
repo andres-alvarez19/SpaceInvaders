@@ -19,7 +19,9 @@ import static com.almasb.fxgl.dsl.FXGL.showMessage;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
 public class SpaceInvadersApplication extends GameApplication {
+    private int puntos = 0;
     private int timelapse;
+    private Text puntosText ;
     private Text timeText;
     @Override
     protected void initSettings(GameSettings settings) {
@@ -79,13 +81,12 @@ public class SpaceInvadersApplication extends GameApplication {
     }
     @Override
     protected void initUI() {
-        timeText = new Text();
-        timeText.setFont(Font.font(24));
-        timeText.setTranslateX(20);
-        timeText.setTranslateY(40);
+        timeText = new Text();timeText.setFont(Font.font(24));timeText.setTranslateX(20);timeText.setTranslateY(40);
+        puntosText = new Text();puntosText.setFont(Font.font(24));puntosText.setTranslateX(670);puntosText.setTranslateY(40);
         getGameTimer().runAtInterval(()->{
             timelapse++;
         },new Duration(1000));
+        FXGL.getGameScene().addUINode(puntosText);
         getGameScene().addUINode(timeText);
     }
     protected void spawnEnemies(){
@@ -100,11 +101,13 @@ public class SpaceInvadersApplication extends GameApplication {
         onCollisionBegin(EntityType.PROJECTILE, EntityType.ENEMY, (projectile, enemy) -> {
             projectile.removeFromWorld();
             enemy.removeFromWorld();
+            puntos++;
         });
     }
     @Override
     protected void onUpdate(double tpf) {
         timeText.setText("Timer: " + Time.formatToTime(timelapse));
+        puntosText.setText("Points: "+ puntos);
         var enemiesReachBase = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY)&& e.getX() < 0);
         if(!enemiesReachBase.isEmpty()){
             showMessage("Game Over",() -> getGameController().gotoMainMenu());
