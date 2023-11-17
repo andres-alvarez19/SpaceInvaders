@@ -13,6 +13,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import java.util.Objects;
+
 import static com.almasb.fxgl.dsl.FXGL.getGameWorld;
 import static com.almasb.fxgl.dsl.FXGL.onCollisionBegin;
 import static com.almasb.fxgl.dsl.FXGL.showMessage;
@@ -35,7 +37,7 @@ public class SpaceInvadersApplication extends GameApplication {
     }
     @Override
     protected void initGame() {
-        Image imagen = new Image(SpaceInvadersApplication.class.getResource("fondo.jpg").toExternalForm());
+        Image imagen = new Image(Objects.requireNonNull(SpaceInvadersApplication.class.getResource("fondo.jpg")).toExternalForm());
         Background background = new Background(new BackgroundImage(imagen,
                 BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,
                 BackgroundPosition.CENTER,
@@ -83,9 +85,7 @@ public class SpaceInvadersApplication extends GameApplication {
     protected void initUI() {
         timeText = new Text();timeText.setFont(Font.font(24));timeText.setTranslateX(20);timeText.setTranslateY(40);
         puntosText = new Text();puntosText.setFont(Font.font(24));puntosText.setTranslateX(670);puntosText.setTranslateY(40);
-        getGameTimer().runAtInterval(()->{
-            timelapse++;
-        },new Duration(1000));
+        getGameTimer().runAtInterval(()-> timelapse++,new Duration(1000));
         FXGL.getGameScene().addUINode(puntosText);
         getGameScene().addUINode(timeText);
     }
