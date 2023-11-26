@@ -15,7 +15,7 @@ import static com.almasb.fxgl.dsl.FXGLForKtKt.spawn;
 public class Player {
     private static final ImageView view = new ImageView(new Image(Objects.requireNonNull(SpaceInvadersApplication.class.getResource("ship.png")).toExternalForm()));
     private static final Point2D size = new Point2D(40,40);
-    private static double speed = 4;
+    private static final double SPEED = 4;
     private static boolean dash = false;
     private static String lastMovement ;
     private static final int DASH_VALUE = 30;
@@ -26,22 +26,22 @@ public class Player {
             spawn("projectile", x, y + 12);
         });
         FXGL.onKeyDown(KeyCode.D, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateX(speed);
+            getGameWorld().getSingleton(EntityType.PLAYER).translateX(SPEED);
             lastMovement = "d";
         });
 
         FXGL.onKey(KeyCode.A, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateX(-speed);
+            getGameWorld().getSingleton(EntityType.PLAYER).translateX(-SPEED);
             lastMovement = "a";
         });
 
         FXGL.onKey(KeyCode.W, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateY(-speed);
+            getGameWorld().getSingleton(EntityType.PLAYER).translateY(-SPEED);
             lastMovement = "w";
         });
 
         FXGL.onKey(KeyCode.S, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateY(speed);
+            getGameWorld().getSingleton(EntityType.PLAYER).translateY(SPEED);
             lastMovement = "s";
         });
         FXGL.onKey(KeyCode.SPACE, () -> {
