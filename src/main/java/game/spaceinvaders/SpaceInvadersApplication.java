@@ -7,9 +7,7 @@ import com.almasb.fxgl.dsl.FXGL;
 import com.almasb.fxgl.entity.Entity;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
@@ -21,11 +19,12 @@ import static com.almasb.fxgl.dsl.FXGL.showMessage;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.*;
 
 public class SpaceInvadersApplication extends GameApplication {
-
-    private int puntos = 0;
-    private int timelapse;
+    private Entity player;
+    private static int points = 0;
+    private static int timer;
     private Text puntosText ;
-    private Text timeText;
+    private Text timeText ;
+
     @Override
     protected void initSettings(GameSettings settings) {
         settings.setWidth(800);
@@ -34,60 +33,34 @@ public class SpaceInvadersApplication extends GameApplication {
         settings.setVersion("0.2");
         settings.setFullScreenAllowed(false);
         settings.setMainMenuEnabled(true);
-        settings.setAppIcon( "logo.png");
+        settings.setAppIcon("icons/logo.png");
     }
     @Override
     protected void initGame() {
-        Image imagen = new Image(Objects.requireNonNull(SpaceInvadersApplication.class.getResource("fondo.jpg")).toExternalForm());
-        Background background = new Background(new BackgroundImage(imagen,
+        Image image = new Image(Objects.requireNonNull(SpaceInvadersApplication.class.getResource("background.jpg")).toExternalForm());
+        Background background = new Background(new BackgroundImage(image,
                 BackgroundRepeat.NO_REPEAT,BackgroundRepeat.NO_REPEAT,
                 BackgroundPosition.CENTER,
                 new BackgroundSize(800,600,true,true, FXGL.getInput().getRegisterInput(), FXGL.getInput().getRegisterInput())));
-        getGameScene().getRoot().setBackground(background);
-        getGameScene().setCursorInvisible();
-        getGameWorld().addEntityFactory(new SpaceInvadersFactory());
+        FXGL.getGameScene().getRoot().setBackground(background);
+        FXGL.getGameScene().setCursorInvisible();
+        FXGL.getGameTimer().runAtInterval(()-> timer++,new Duration(1000));
+        FXGL.getGameWorld().addEntityFactory(new SpaceInvadersFactory());
         spawn("player",0, (double) getAppHeight() /2);
         spawnEnemies();
     }
     @Override
     protected void initInput(){
-        double speed = 4;
-        FXGL.onBtnDown(MouseButton.PRIMARY, ()-> {
-            double x = getGameWorld().getSingleton(EntityType.PLAYER).getX();
-            double y = getGameWorld().getSingleton(EntityType.PLAYER).getY();
-            spawn("projectile",x,y+12);
-        });
-        onKey(KeyCode.D, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateX(speed);
-            return null;
-        });
+        Player.inputs();
+        FXGL.onKey(KeyCode.ESCAPE,"Pause", () -> getGameController().pauseEngine());
 
-        onKey(KeyCode.A, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateX(-speed);
-            return null;
-        });
-
-        onKey(KeyCode.W, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateY(-speed);
-            return null;
-        });
-
-        onKey(KeyCode.S, () -> {
-            getGameWorld().getSingleton(EntityType.PLAYER).translateY(speed);
-            return null;
-        });
-        onKey(KeyCode.ESCAPE, () -> {
-            getGameController().pauseEngine();
-            return null;
-        });
     }
     @Override
     protected void initUI() {
-        timeText = new Text();timeText.setFont(Font.font(24));timeText.setTranslateX(20);timeText.setTranslateY(40);
-        puntosText = new Text();puntosText.setFont(Font.font(24));puntosText.setTranslateX(670);puntosText.setTranslateY(40);
-        getGameTimer().runAtInterval(()-> timelapse++,new Duration(1000));
+        timeText = GameUI.getTime();
+        puntosText = GameUI.getPoints();
         FXGL.getGameScene().addUINode(puntosText);
-        getGameScene().addUINode(timeText);
+        FXGL.getGameScene().addUINode(timeText);
     }
     protected void spawnEnemies(){
         FXGL.run(()->{
@@ -99,31 +72,58 @@ public class SpaceInvadersApplication extends GameApplication {
     @Override
     protected void initPhysics() {
         onCollisionBegin(EntityType.PROJECTILE, EntityType.ENEMY, (projectile, enemy) -> {
-            projectile.removeFromWorld();
-            enemy.removeFromWorld();
-            puntos++;
+            deleteCollidedEntities(projectile,enemy);
+            points++;
         });
     }
     @Override
     protected void onUpdate(double tpf) {
-        timeText.setText("Timer: " + Time.formatToTime(timelapse));
-        puntosText.setText("Points: "+ puntos);
-        var enemiesReachBase = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY)&& e.getX() < 0);
-        if(!enemiesReachBase.isEmpty()){
-            showMessage("Game Over",() -> getGameController().gotoMainMenu());
-        }
-        Entity player = getGameWorld().getSingleton(EntityType.PLAYER);
-        var enemies = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY));
-        for (Entity enemy : enemies) {
-            if (player.isColliding(enemy)){
-                player.removeFromWorld();
-                enemy.removeFromWorld();
-                showMessage("Game Over",() -> getGameController().gotoMainMenu());
-            }
-        }
+        refreshPlayer();
+        setTexts();
+        limitPlayerMovement(player);
+        gameLogic();
+    }
+    private void refreshPlayer() {
+        player = getGameWorld().getSingleton(EntityType.PLAYER);
+    }
+    private void setTexts() {
+        timeText.setText(GameUI.getTimeText(timer));
+        puntosText.setText(GameUI.getPointsText(points));
+    }
+    private static void limitPlayerMovement(Entity player) {
         double x = FXGLMath.clamp((float) player.getX(), (float) 0, (float) (getAppWidth() - player.getWidth()));
         double y = FXGLMath.clamp((float) player.getY(), (float) 0, (float) (getAppHeight() - player.getHeight()));
         player.setPosition(x, y);
+    }
+    private void gameLogic() {
+        if(enemiesReachBase()){endGame();}
+        if(playerColliesEnemy(player) != null){
+            deleteCollidedEntities(player, Objects.requireNonNull(playerColliesEnemy(player)));
+            endGame();
+        }
+    }
+    private static boolean enemiesReachBase() {
+        var enemiesReachBase = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY)&& e.getX() < 0);
+        return !enemiesReachBase.isEmpty();
+    }
+    private static void endGame() {
+        showMessage("Game Over",() -> getGameController().gotoMainMenu());
+        points = 0;
+        timer = 0;
+    }
+    private static Entity playerColliesEnemy(Entity player) {
+        var enemies = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY));
+        for (Entity enemy : enemies) {
+            if (player.isColliding(enemy)){
+                return enemy;
+            }
+        }
+        return null;
+    }
+
+    private static void deleteCollidedEntities(Entity entity, Entity collidedEntity) {
+        entity.removeFromWorld();
+        collidedEntity.removeFromWorld();
     }
     public static void main(String[] args) {
         launch(args);

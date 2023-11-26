@@ -41,13 +41,9 @@ public class SpaceInvadersFactory implements EntityFactory {
     }
     @Spawns("player")
     public Entity newPlayer(SpawnData data) {
-        Image imagen = new Image(SpaceInvadersApplication.class.getResource("ship.png").toExternalForm());
-        ImageView view = new ImageView(imagen);
-        view.setFitWidth(40);
-        view.setFitHeight(40);
         return FXGL.entityBuilder(data)
                 .type(EntityType.PLAYER)
-                .viewWithBBox(view)
+                .viewWithBBox(Player.getView())
                 .collidable()
                 .build();
 
