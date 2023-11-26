@@ -18,14 +18,14 @@ public class Player {
     private static final double SPEED = 4;
     private static boolean dash = false;
     private static String lastMovement ;
-    private static final int DASH_VALUE = 30;
+    private static final int DASH_VALUE = 5;
     public static void inputs() {
         FXGL.onBtnDown(MouseButton.PRIMARY, () -> {
             double x = getGameWorld().getSingleton(EntityType.PLAYER).getX();
             double y = getGameWorld().getSingleton(EntityType.PLAYER).getY();
             spawn("projectile", x, y + 12);
         });
-        FXGL.onKeyDown(KeyCode.D, () -> {
+        FXGL.onKey(KeyCode.D, () -> {
             getGameWorld().getSingleton(EntityType.PLAYER).translateX(SPEED);
             lastMovement = "d";
         });
@@ -50,8 +50,8 @@ public class Player {
                 switch (lastMovement) {
                     case "a" -> getGameWorld().getSingleton(EntityType.PLAYER).translateX(-DASH_VALUE);
                     case "d" -> getGameWorld().getSingleton(EntityType.PLAYER).translateX(DASH_VALUE);
-                    case "w" -> getGameWorld().getSingleton(EntityType.PLAYER).translateY(DASH_VALUE);
-                    case "s" -> getGameWorld().getSingleton(EntityType.PLAYER).translateY(-DASH_VALUE);
+                    case "s" -> getGameWorld().getSingleton(EntityType.PLAYER).translateY(DASH_VALUE);
+                    case "w" -> getGameWorld().getSingleton(EntityType.PLAYER).translateY(-DASH_VALUE);
                 }
             }
             dash = false;
