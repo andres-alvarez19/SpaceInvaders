@@ -11,6 +11,8 @@ import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import static com.almasb.fxgl.dsl.FXGL.getGameWorld;
@@ -72,8 +74,26 @@ public class SpaceInvadersApplication extends GameApplication {
     @Override
     protected void initPhysics() {
         onCollisionBegin(EntityType.PROJECTILE, EntityType.ENEMY, (projectile, enemy) -> {
+            spawn("explosion",projectile.getX(),projectile.getY());
             deleteCollidedEntities(projectile,enemy);
+            getGameTimer().runOnceAfter(() -> getGameWorld().getEntitiesByType(EntityType.EXPLOSION).forEach(Entity::removeFromWorld), Duration.seconds(0.1));
             points++;
+        });
+        onCollisionBegin(EntityType.SPECIAL, EntityType.ENEMY, (projectile, enemy) -> {
+            List<Entity> reachMeteorite = new ArrayList<>();
+            var enemies = getGameWorld().getEntitiesFiltered(e -> e.isType(EntityType.ENEMY));
+            projectile.removeFromWorld();
+            spawn("bigExplosion",projectile.getX(),projectile.getY());
+            getGameTimer().runOnceAfter(() -> getGameWorld().getEntitiesByType(EntityType.EXPLOSION).forEach(Entity::removeFromWorld), Duration.seconds(0.1));
+            for (Entity meteors : enemies) {
+                if(Math.abs(meteors.getPosition().distance(projectile.getPosition())) <= 100 ){
+                    reachMeteorite.add(meteors);
+                }
+            }
+            for (Entity meteors:reachMeteorite) {
+                meteors.removeFromWorld();
+                points++;
+            }
         });
     }
     @Override

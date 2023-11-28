@@ -1,5 +1,5 @@
 package game.spaceinvaders;
 
 public enum EntityType {
-    PLAYER,ENEMY,PROJECTILE
+    PLAYER,ENEMY,PROJECTILE,SPECIAL,EXPLOSION
 }

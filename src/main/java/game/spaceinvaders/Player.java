@@ -10,6 +10,7 @@ import javafx.scene.input.MouseButton;
 import java.util.Objects;
 
 import static com.almasb.fxgl.dsl.FXGL.getGameWorld;
+import static com.almasb.fxgl.dsl.FXGL.onBtn;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.spawn;
 
 public class Player {
@@ -19,12 +20,10 @@ public class Player {
     private static boolean dash = false;
     private static String lastMovement ;
     private static final int DASH_VALUE = 5;
+
     public static void inputs() {
-        FXGL.onBtnDown(MouseButton.PRIMARY, () -> {
-            double x = getGameWorld().getSingleton(EntityType.PLAYER).getX();
-            double y = getGameWorld().getSingleton(EntityType.PLAYER).getY();
-            spawn("projectile", x, y + 12);
-        });
+        FXGL.onBtnDown(MouseButton.PRIMARY, Player::missile);
+        FXGL.onBtnDown(MouseButton.SECONDARY, Player::especialAttack);
         FXGL.onKey(KeyCode.D, () -> {
             getGameWorld().getSingleton(EntityType.PLAYER).translateX(SPEED);
             lastMovement = "d";
@@ -57,7 +56,16 @@ public class Player {
             dash = false;
         });
     }
-
+    private static void especialAttack(){
+        double x = getGameWorld().getSingleton(EntityType.PLAYER).getX();
+        double y = getGameWorld().getSingleton(EntityType.PLAYER).getY();
+        spawn("specialAttack", x, y + 12);
+    }
+    private static void missile(){
+        double x = getGameWorld().getSingleton(EntityType.PLAYER).getX();
+        double y = getGameWorld().getSingleton(EntityType.PLAYER).getY();
+        spawn("projectile", x, y + 12);
+    }
     public static ImageView getView() {
         view.setFitWidth(size.getX());
         view.setFitHeight(size.getY());
