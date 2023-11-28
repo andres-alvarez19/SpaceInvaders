@@ -10,7 +10,6 @@ import javafx.scene.input.MouseButton;
 import java.util.Objects;
 
 import static com.almasb.fxgl.dsl.FXGL.getGameWorld;
-import static com.almasb.fxgl.dsl.FXGL.onBtn;
 import static com.almasb.fxgl.dsl.FXGLForKtKt.spawn;
 
 public class Player {

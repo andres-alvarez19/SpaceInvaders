@@ -23,29 +23,27 @@ public class SpaceInvadersFactory implements EntityFactory {
         Texture collisionImage = texture("explosion.png");
         collisionImage.setFitHeight(100);
         collisionImage.setFitWidth(100);
-        Entity collisionEntity = FXGL.entityBuilder(data)
+        return FXGL.entityBuilder(data)
                 .type(EntityType.EXPLOSION)
                 .viewWithBBox(collisionImage)
                 .with(new OffscreenCleanComponent())
                 .build();
-        return collisionEntity;
     }
     @Spawns("explosion")
     public Entity showCollisionImage(SpawnData data) {
         Texture collisionImage = texture("explosion.png");
         collisionImage.setFitHeight(40);
         collisionImage.setFitWidth(40);
-        Entity collisionEntity = FXGL.entityBuilder(data)
+        return FXGL.entityBuilder(data)
                 .type(EntityType.EXPLOSION)
                 .viewWithBBox(collisionImage)
                 .with(new OffscreenCleanComponent())
                 .build();
-        return collisionEntity;
     }
 
     @Spawns("enemy")
     public Entity newEnemy(SpawnData data ){
-        Image imagen = new Image(SpaceInvadersApplication.class.getResource("meteors.png").toExternalForm());
+        Image imagen = new Image(Objects.requireNonNull(SpaceInvadersApplication.class.getResource("meteors.png")).toExternalForm());
         ImageView view = new ImageView(imagen);
         view.setFitWidth(40);
         view.setFitHeight(40);
